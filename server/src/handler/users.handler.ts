@@ -8,6 +8,7 @@ import {
    UpdateUserResponse,
    UpdateUserRequestParams,
    GetUsersCountRsponse,
+   ProfilePhotoUploadResponse,
 } from '../Api/users';
 import { validateUpdateUser } from '../validator/user.validate';
 import { PasswordServices } from '../utils/passwordService';
@@ -138,4 +139,23 @@ export const getUsersCountHandler: ExpressHandler<{}, {}, GetUsersCountRsponse, 
 ) => {
    const count = await prisma.user.count();
    return res.status(201).json({ count });
+};
+
+/**
+ * @desc    Profile Photo Upload
+ * @route   /api/users/profile/profile-photo-upload
+ * @method  POST
+ * @access private (only logged in users)
+ */
+
+export const profilePhotoUploadHandler: ExpressHandler<
+   {},
+   {},
+   ProfilePhotoUploadResponse,
+   {}
+> = async (req, res, next) => {
+   if (!req.file) {
+      return res.status(401).json({ message: 'no file provided' });
+   }
+   return res.status(201).json({ message: 'your profile photo upload successfully' });
 };
