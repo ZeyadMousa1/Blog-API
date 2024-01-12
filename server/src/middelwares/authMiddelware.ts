@@ -43,3 +43,18 @@ export const authMiddelwareAndIsAdminRole: ExpressHandler<{}, {}, {}, {}> = (req
       next();
    });
 };
+
+// verify token and only users himeSelf
+export const authMiddelwareAndOnlyUsers: ExpressHandler<{ id: string }, {}, {}, {}> = (
+   req,
+   res,
+   next
+) => {
+   authMiddelware(req, res, () => {
+      if ((req as any).currentUser.id === req.params.id) {
+         next();
+      } else {
+         return res.status(403).json({ error: 'not allowed, only users himSelf' });
+      }
+   });
+};

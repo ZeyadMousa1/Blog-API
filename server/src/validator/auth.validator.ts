@@ -1,4 +1,4 @@
-import joi, { func } from 'joi';
+import joi from 'joi';
 
 export function validateSignUpUser(obj: Object) {
    const schema = joi.object({

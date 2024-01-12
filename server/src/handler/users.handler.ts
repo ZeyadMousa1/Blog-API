@@ -1,6 +1,16 @@
 import { Prisma, PrismaClient, User } from '@prisma/client';
 import { ExpressHandler } from '../utils/types';
-import { GetAllUsersResponse, GetUSerResponse, GetUserRequest } from '../Api/users';
+import {
+   GetAllUsersResponse,
+   GetUserResponse,
+   GetUserRequest,
+   UpdateUserRequest,
+   UpdateUserResponse,
+   UpdateUserRequestParams,
+} from '../Api/users';
+import { validateUpdateUser } from '../validator/user.validate';
+import { PasswordServices } from '../utils/passwordService';
+import { has } from 'lodash';
 
 const prisma = new PrismaClient();
 
@@ -37,7 +47,7 @@ export const getAllUsersHandler: ExpressHandler<{}, {}, GetAllUsersResponse, {}>
  * @method GET
  * @access public
  */
-export const getUserHandler: ExpressHandler<GetUserRequest, {}, GetUSerResponse, {}> = async (
+export const getUserHandler: ExpressHandler<GetUserRequest, {}, GetUserResponse, {}> = async (
    req,
    res,
    next
@@ -63,4 +73,53 @@ export const getUserHandler: ExpressHandler<GetUserRequest, {}, GetUSerResponse,
       return res.status(400).json({ error: 'not found this user' });
    }
    res.status(201).json({ user });
+};
+
+/**
+ * @desc Update User Profile
+ * @route /api/users/profile/{id}
+ * @method PUT
+ * @access private (only himself)
+ */
+export const updateUserProfileHandler: ExpressHandler<
+   UpdateUserRequestParams,
+   UpdateUserRequest,
+   UpdateUserResponse,
+   {}
+> = async (req, res, next) => {
+   const { error } = validateUpdateUser(req.body);
+   if (error) {
+      return res.status(400).json({ error: error.details[0].message });
+   }
+   const { id } = req.params;
+   const { bio, username, password } = req.body;
+   let hashedPassword;
+   if (!id) {
+      return res.status(400).json({ error: 'not found this user' });
+   }
+   if (password) {
+      hashedPassword = await PasswordServices.hashPassword(password);
+   }
+   const user = await prisma.user.update({
+      where: {
+         id,
+      },
+      data: {
+         bio,
+         username,
+         password: hashedPassword,
+      },
+      select: {
+         id: true,
+         email: true,
+         username: true,
+         bio: true,
+         profilePhoto: true,
+         isAdmin: true,
+         isAccountVerified: true,
+         createdAt: true,
+         updatedAt: true,
+      },
+   });
+   return res.status(201).json({ user });
 };

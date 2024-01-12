@@ -7,6 +7,14 @@ export interface GetAllUsersResponse {
 export interface GetUserRequest {
    id: string;
 }
-export interface GetUSerResponse {
+export interface GetUserResponse {
    user: Partial<User>;
 }
+
+export interface UpdateUserRequestParams {
+   id: string;
+}
+export interface UpdateUserResponse {
+   user: Partial<User>;
+}
+export type UpdateUserRequest = Pick<User, 'bio' | 'username' | 'password'>;
