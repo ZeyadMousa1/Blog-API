@@ -7,6 +7,7 @@ import {
    UpdateUserRequest,
    UpdateUserResponse,
    UpdateUserRequestParams,
+   GetUsersCountRsponse,
 } from '../Api/users';
 import { validateUpdateUser } from '../validator/user.validate';
 import { PasswordServices } from '../utils/passwordService';
@@ -122,4 +123,19 @@ export const updateUserProfileHandler: ExpressHandler<
       },
    });
    return res.status(201).json({ user });
+};
+
+/**
+ * @desc    Get Users Count
+ * @route   /api/users/count
+ * @method  GET
+ * @access private (only admin)
+ */
+export const getUsersCountHandler: ExpressHandler<{}, {}, GetUsersCountRsponse, {}> = async (
+   req,
+   res,
+   next
+) => {
+   const count = await prisma.user.count();
+   return res.status(201).json({ count });
 };

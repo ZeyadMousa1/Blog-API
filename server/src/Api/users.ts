@@ -18,3 +18,7 @@ export interface UpdateUserResponse {
    user: Partial<User>;
 }
 export type UpdateUserRequest = Pick<User, 'bio' | 'username' | 'password'>;
+
+export interface GetUsersCountRsponse {
+   count: number;
+}
