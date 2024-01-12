@@ -20,6 +20,7 @@
    },
    "dependencies": {
       "@prisma/client": "^5.8.0",
+      "@trivago/prettier-plugin-sort-imports": "^4.3.0",
       "@types/bcryptjs": "^2.4.6",
       "@types/dotenv": "^8.2.0",
       "bcryptjs": "^2.4.3",
