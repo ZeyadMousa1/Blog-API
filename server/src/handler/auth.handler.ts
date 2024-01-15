@@ -39,6 +39,8 @@ export const signUpHandler: ExpressHandler<{}, SignUpRequest, SignUpResponse, {}
       username,
       email,
       password: hashedPassword,
+      bio: '',
+      photoPublicId: '',
    };
    await prisma.user.create({
       data: user,

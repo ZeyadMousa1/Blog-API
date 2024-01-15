@@ -23,6 +23,11 @@ export interface GetUsersCountRsponse {
    count: number;
 }
 
+export interface ProfilePhotoUploadRequest {
+   user: User;
+}
 export interface ProfilePhotoUploadResponse {
    message: string;
+   url: string;
+   publicId: string;
 }

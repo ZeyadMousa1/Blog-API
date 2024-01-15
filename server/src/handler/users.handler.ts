@@ -1,4 +1,4 @@
-import { Prisma, PrismaClient, User } from '@prisma/client';
+import { PrismaClient, User } from '@prisma/client';
 import { ExpressHandler } from '../utils/types';
 import {
    GetAllUsersResponse,
@@ -9,10 +9,13 @@ import {
    UpdateUserRequestParams,
    GetUsersCountRsponse,
    ProfilePhotoUploadResponse,
+   ProfilePhotoUploadRequest,
 } from '../Api/users';
 import { validateUpdateUser } from '../validator/user.validate';
 import { PasswordServices } from '../utils/passwordService';
-import { has } from 'lodash';
+import path from 'path';
+import { cloudinaryRemoveImage, cloudinaryUploadImage } from '../utils/cloudinary';
+import fs from 'fs';
 
 const prisma = new PrismaClient();
 
@@ -150,12 +153,41 @@ export const getUsersCountHandler: ExpressHandler<{}, {}, GetUsersCountRsponse, 
 
 export const profilePhotoUploadHandler: ExpressHandler<
    {},
-   {},
+   ProfilePhotoUploadRequest,
    ProfilePhotoUploadResponse,
    {}
 > = async (req, res, next) => {
    if (!req.file) {
       return res.status(401).json({ message: 'no file provided' });
    }
-   return res.status(201).json({ message: 'your profile photo upload successfully' });
+   const imagePath = path.join(__dirname, `../images/${req.file.filename}`);
+   const result = await cloudinaryUploadImage(imagePath);
+   console.log(result);
+   const user = await prisma.user.findUnique({
+      where: {
+         id: (req as any).currentUser.id,
+      },
+   });
+   if (user?.photoPublicId !== '') {
+      await cloudinaryRemoveImage(user?.photoPublicId!);
+   }
+   if (result) {
+      user!.profilePhoto = (result as any).secure_url;
+      user!.photoPublicId = (result as any).public_id;
+   }
+   await prisma.user.update({
+      where: {
+         id: user?.id,
+      },
+      data: {
+         profilePhoto: user?.profilePhoto,
+         photoPublicId: user?.photoPublicId,
+      },
+   });
+   res.status(201).json({
+      message: 'your profile photo upload successfully',
+      url: (result as any).secure_url,
+      publicId: (result as any).public_id,
+   });
+   fs.unlinkSync(imagePath);
 };
