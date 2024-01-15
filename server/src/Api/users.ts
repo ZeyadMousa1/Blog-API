@@ -31,3 +31,10 @@ export interface ProfilePhotoUploadResponse {
    url: string;
    publicId: string;
 }
+
+export interface DeleteProfileRequestParam {
+   id: string;
+}
+export interface DeleteProfileResponse {
+   message: string;
+}

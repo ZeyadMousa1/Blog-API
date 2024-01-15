@@ -2,7 +2,7 @@ import express, { Request, Response } from 'express';
 import dotenv from 'dotenv';
 import { authRouter } from './routes/auth.routes';
 import { userRouter } from './routes/users.routes';
-import { errorHandler, notFound } from './middelwares/errorMeiddelware';
+import { errorHandler, notFound } from './middelwares/handleError';
 
 dotenv.config();
 const app = express();

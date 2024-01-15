@@ -1,6 +1,7 @@
 import express from 'express';
 import asyncHandler from 'express-async-handler';
 import {
+   deleteProfile,
    getAllUsersHandler,
    getUserHandler,
    getUsersCountHandler,
@@ -8,24 +9,25 @@ import {
    updateUserProfileHandler,
 } from '../handler/users.handler';
 import {
-   authMiddelware,
-   authMiddelwareAndIsAdminRole,
-   authMiddelwareAndOnlyUsers,
-   isAdminRole,
-} from '../middelwares/authMiddelware';
+   verifyTokeAndIsAdminRole,
+   verifyTokenAndOnlyUsers,
+   verifyTokenAndAuthorization,
+} from '../middelwares/manageRoles';
 import { photoUpload } from '../middelwares/photoUpload';
+import { verifyToken } from '../middelwares/verifyToken';
 
 export const userRouter = express.Router();
 
-userRouter.route('/profile').get(authMiddelwareAndIsAdminRole, asyncHandler(getAllUsersHandler));
+userRouter.route('/profile').get(verifyTokeAndIsAdminRole, asyncHandler(getAllUsersHandler));
 
 userRouter
    .route('/profile/profile-photo-upload')
-   .post(authMiddelware, photoUpload.single('image'), asyncHandler(profilePhotoUploadHandler));
+   .post(verifyToken, photoUpload.single('image'), asyncHandler(profilePhotoUploadHandler));
 
-userRouter.route('/count').get(authMiddelwareAndIsAdminRole, asyncHandler(getUsersCountHandler));
+userRouter.route('/count').get(verifyTokeAndIsAdminRole, asyncHandler(getUsersCountHandler));
 
 userRouter
    .route('/profile/:id')
-   .get(authMiddelware, asyncHandler(getUserHandler))
-   .put(authMiddelwareAndOnlyUsers, asyncHandler(updateUserProfileHandler));
+   .get(verifyToken, asyncHandler(getUserHandler))
+   .put(verifyTokenAndOnlyUsers, asyncHandler(updateUserProfileHandler))
+   .delete(verifyTokenAndAuthorization, asyncHandler(deleteProfile));

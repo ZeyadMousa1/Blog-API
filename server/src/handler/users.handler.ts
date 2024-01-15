@@ -10,7 +10,9 @@ import {
    GetUsersCountRsponse,
    ProfilePhotoUploadResponse,
    ProfilePhotoUploadRequest,
-} from '../Api/users';
+   DeleteProfileRequestParam,
+   DeleteProfileResponse,
+} from '../api/users';
 import { validateUpdateUser } from '../validator/user.validate';
 import { PasswordServices } from '../utils/passwordService';
 import path from 'path';
@@ -190,4 +192,36 @@ export const profilePhotoUploadHandler: ExpressHandler<
       publicId: (result as any).public_id,
    });
    fs.unlinkSync(imagePath);
+};
+
+/**
+ * @desc    Delete User Account
+ * @route   /api/users/profile/:id
+ * @method  DELETE
+ * @access private (only admin or user him self)
+ */
+
+export const deleteProfile: ExpressHandler<
+   DeleteProfileRequestParam,
+   {},
+   DeleteProfileResponse,
+   {}
+> = async (req, res, next) => {
+   const { id } = req.params;
+   const user = await prisma.user.findUnique({
+      where: {
+         id,
+      },
+   });
+   if (!user) {
+      return res.status(404).json({ error: 'User not found!' });
+   }
+   await cloudinaryRemoveImage(user.photoPublicId);
+   // @TODO : Delete user posts and comment from db and delete user posts image from cloudinary
+   await prisma.user.delete({
+      where: {
+         id,
+      },
+   });
+   res.status(201).json({ message: 'your profile has been deleted' });
 };

@@ -1,6 +1,6 @@
 import { Prisma, PrismaClient } from '@prisma/client';
 import { ExpressHandler } from '../utils/types';
-import { SignInRequest, SignInResponse, SignUpRequest, SignUpResponse } from '../Api/auth';
+import { SignInRequest, SignInResponse, SignUpRequest, SignUpResponse } from '../api/auth';
 import { validateSignUpUser, validateSignInUser } from '../validator/auth.validator';
 import { PasswordServices } from '../utils/passwordService';
 import { generateJwtToken } from '../utils/auth';
