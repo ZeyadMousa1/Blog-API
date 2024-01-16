@@ -22,6 +22,43 @@ model User{
   isAccountVerified Boolean @default(false)
   createdAt DateTime @default(now())
   updatedAt DateTime? @updatedAt
+  posts Post[]
+  likes Like[]
+  comments Comment[]
+}
+
+model Post{
+  id String @id @default(uuid())
+  title String
+  description String
+  userId String
+  user User @relation(fields: [userId], references: [id])
+  category String
+  image  String
+  imagePublicId String
+  likes Like[]  
+  comments Comment[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime? @updatedAt
+}
+
+model Like {
+  id      String    @id @default(uuid())
+  postId  String
+  userId  String
+  post    Post   @relation(fields: [postId], references: [id])
+  user    User   @relation(fields: [userId], references: [id])
+}
+
+model Comment{
+  id String @id @default(uuid())
+  title String
+  postId String
+  userId String
+  post Post @relation(fields: [postId], references: [id])
+  user User @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime? @updatedAt
 }
 
 
