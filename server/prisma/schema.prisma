@@ -34,8 +34,8 @@ model Post{
   userId String
   user User @relation(fields: [userId], references: [id])
   category String
-  image  String
-  imagePublicId String
+  image  String?
+  imagePublicId String?
   likes Like[]  
   comments Comment[]
   createdAt DateTime @default(now())
