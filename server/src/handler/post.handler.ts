@@ -1,10 +1,19 @@
 import fs from 'fs';
 import path from 'path';
-import { Post, Prisma, PrismaClient } from '@prisma/client';
+import { PrismaClient } from '@prisma/client';
 import { ExpressHandler } from '../utils/types';
 import { createPostValidation } from '../validator/post.validator';
-import { createPostRequest, createPostResponse } from '../api/post';
-import { cloudinaryUploadImage } from '../utils/cloudinary';
+import {
+   createPostRequest,
+   createPostResponse,
+   deletePostRequest,
+   deletePostResponse,
+   getAllPostsRequestQuery,
+   getAllPostsResponse,
+   getSinglePostRequest,
+   getSinglePostResponse,
+} from '../api/post';
+import { cloudinaryRemoveImage, cloudinaryUploadImage } from '../utils/cloudinary';
 
 const prisma = new PrismaClient();
 
@@ -45,4 +54,149 @@ export const createPostHandler: ExpressHandler<
       post,
    });
    fs.unlinkSync(imagePath);
+};
+
+/**
+ * @desc    Get All Posts
+ * @route   /api/posts
+ * @method  GET
+ * @access public
+ */
+export const getAllPostsHandler: ExpressHandler<
+   {},
+   {},
+   getAllPostsResponse,
+   getAllPostsRequestQuery
+> = async (req, res, next) => {
+   const { category, pageNumber } = req.query;
+   const POST_PER_PAGE = 3;
+   let posts;
+   const userSelected = {
+      id: true,
+      username: true,
+      email: true,
+      profilePhoto: true,
+      isAdmin: true,
+      isAccountVerified: true,
+   };
+
+   if (pageNumber) {
+      posts = await prisma.post.findMany({
+         skip: (pageNumber - 1) * POST_PER_PAGE,
+         take: POST_PER_PAGE,
+         orderBy: {
+            createdAt: 'desc',
+         },
+         include: {
+            user: {
+               select: userSelected,
+            },
+         },
+      });
+   } else if (category) {
+      posts = await prisma.post.findMany({
+         orderBy: {
+            createdAt: 'desc',
+         },
+         where: {
+            category,
+         },
+         include: {
+            user: {
+               select: userSelected,
+            },
+         },
+      });
+   } else {
+      posts = await prisma.post.findMany({
+         orderBy: {
+            createdAt: 'desc',
+         },
+         include: {
+            user: {
+               select: userSelected,
+            },
+         },
+      });
+   }
+
+   res.status(201).json({
+      result: posts.length,
+      posts,
+   });
+};
+
+/**
+ * @desc    Get Single Post
+ * @route   /api/posts/:id
+ * @method  GET
+ * @access public
+ */
+export const getSinglePostHandler: ExpressHandler<
+   getSinglePostRequest,
+   {},
+   getSinglePostResponse,
+   {}
+> = async (req, res, next) => {
+   const { id } = req.params;
+   const post = await prisma.post.findUnique({
+      where: {
+         id,
+      },
+      include: {
+         user: {
+            select: {
+               id: true,
+               username: true,
+               email: true,
+               profilePhoto: true,
+               isAdmin: true,
+               isAccountVerified: true,
+            },
+         },
+      },
+   });
+   if (!post) {
+      return res.status(404).json({ error: 'post not found' });
+   }
+   res.status(201).json({ post });
+};
+
+/**
+ * @desc    Delete Post
+ * @route   /api/posts/:id
+ * @method  DELETE
+ * @access private (only admin or owner of the post)
+ */
+export const deletePostHandler: ExpressHandler<
+   deletePostRequest,
+   {},
+   deletePostResponse,
+   {}
+> = async (req, res, next) => {
+   const { id } = req.params;
+   const post = await prisma.post.findUnique({
+      where: {
+         id,
+      },
+   });
+   if (!post) {
+      return res.status(404).json({ error: 'post not found' });
+   }
+
+   if ((req as any).currentUser.isAdmin || (req as any).currentUser.id === post.userId) {
+      await prisma.post.delete({
+         where: {
+            id,
+         },
+      });
+      await cloudinaryRemoveImage(post.imagePublicId!);
+      // @TODO: Delete all comments for this post
+      res.status(200).json({
+         messgae: 'post has been deleted successfully',
+         id: post.id,
+      });
+   } else {
+      res.status(403).json({ error: 'access denied, forbidden' });
+   }
 };
