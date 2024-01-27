@@ -5,6 +5,8 @@ import {
    deletePostHandler,
    getAllPostsHandler,
    getSinglePostHandler,
+   updatePostHandler,
+   updatePostImage,
 } from '../handler/post.handler';
 import { verifyToken } from '../middelwares/verifyToken';
 import { photoUpload } from '../middelwares/photoUpload';
@@ -19,4 +21,9 @@ postRouter
 postRouter
    .route('/:id')
    .get(asyncHandler(getSinglePostHandler))
-   .delete(verifyToken, asyncHandler(deletePostHandler));
+   .delete(verifyToken, asyncHandler(deletePostHandler))
+   .put(verifyToken, asyncHandler(updatePostHandler));
+
+postRouter
+   .route('/update-image/:id')
+   .put(verifyToken, photoUpload.single('image'), asyncHandler(updatePostImage));

@@ -1,4 +1,4 @@
-import { Post } from '@prisma/client';
+import { Post, User } from '@prisma/client';
 
 export type createPostRequest = Pick<Post, 'title' | 'description' | 'category'>;
 export interface createPostResponse {
@@ -28,4 +28,17 @@ export interface deletePostRequest {
 export interface deletePostResponse {
    messgae: string;
    id: string;
+}
+
+export interface updatePostRequestParam {
+   id: string;
+}
+export type updatePostRequest = Pick<
+   Post,
+   'category' | 'description' | 'image' | 'imagePublicId' | 'title'
+>;
+
+export interface updatePostResponse {
+   message: string;
+   post: Post;
 }

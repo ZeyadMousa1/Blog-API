@@ -2,7 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import { PrismaClient } from '@prisma/client';
 import { ExpressHandler } from '../utils/types';
-import { createPostValidation } from '../validator/post.validator';
+import { createPostValidation, updatePostValidation } from '../validator/post.validator';
 import {
    createPostRequest,
    createPostResponse,
@@ -12,17 +12,15 @@ import {
    getAllPostsResponse,
    getSinglePostRequest,
    getSinglePostResponse,
+   updatePostRequest,
+   updatePostRequestParam,
+   updatePostResponse,
 } from '../api/post';
 import { cloudinaryRemoveImage, cloudinaryUploadImage } from '../utils/cloudinary';
+import { Response, Request, NextFunction } from 'express';
 
 const prisma = new PrismaClient();
 
-/**
- * @desc    Create New Post
- * @route   /api/posts
- * @method  POST
- * @access private (only loggedin users himself)
- */
 export const createPostHandler: ExpressHandler<
    {},
    createPostRequest,
@@ -56,12 +54,6 @@ export const createPostHandler: ExpressHandler<
    fs.unlinkSync(imagePath);
 };
 
-/**
- * @desc    Get All Posts
- * @route   /api/posts
- * @method  GET
- * @access public
- */
 export const getAllPostsHandler: ExpressHandler<
    {},
    {},
@@ -126,12 +118,6 @@ export const getAllPostsHandler: ExpressHandler<
    });
 };
 
-/**
- * @desc    Get Single Post
- * @route   /api/posts/:id
- * @method  GET
- * @access public
- */
 export const getSinglePostHandler: ExpressHandler<
    getSinglePostRequest,
    {},
@@ -162,12 +148,6 @@ export const getSinglePostHandler: ExpressHandler<
    res.status(201).json({ post });
 };
 
-/**
- * @desc    Delete Post
- * @route   /api/posts/:id
- * @method  DELETE
- * @access private (only admin or owner of the post)
- */
 export const deletePostHandler: ExpressHandler<
    deletePostRequest,
    {},
@@ -200,3 +180,141 @@ export const deletePostHandler: ExpressHandler<
       res.status(403).json({ error: 'access denied, forbidden' });
    }
 };
+
+export async function updatePostHandler(req: Request, res: Response, next: NextFunction) {
+   const { id } = req.params;
+   const { title, category, description, image, imagePublicId } = req.body;
+   const { error } = updatePostValidation(req.body);
+   if (error) {
+      res.status(400).json({ error: error.details[0].message });
+   }
+   const post = await prisma.post.findUnique({
+      where: {
+         id,
+      },
+   });
+   if (!post) {
+      res.status(404).json({ error: 'post not found' });
+   }
+   if ((req as any).currentUser.id === post?.userId) {
+      const postUp = await prisma.post.update({
+         where: {
+            id,
+         },
+         data: {
+            title,
+            category,
+            description,
+            image,
+            imagePublicId,
+         },
+         include: {
+            user: {
+               select: {
+                  id: true,
+                  username: true,
+                  email: true,
+                  profilePhoto: true,
+                  isAdmin: true,
+                  isAccountVerified: true,
+               },
+            },
+         },
+      });
+      res.status(200).json({
+         message: 'post success updated',
+         post: postUp,
+      });
+   } else {
+      res.status(403).json({ error: 'access denied, forbidden' });
+   }
+}
+// export const updatePostHandler: ExpressHandler<
+//    updatePostRequestParam,
+//    updatePostRequest,
+//    updatePostResponse,
+//    {}
+// > = async (req, res, next) => {
+//    const { id } = req.params;
+//    const { title, category, description, image, imagePublicId } = req.body;
+//    const { error } = updatePostValidation(req.body);
+//    if (error) {
+//       res.status(400).json({ error: error.details[0].message });
+//    }
+//    const post = await prisma.post.findUnique({
+//       where: {
+//          id,
+//       },
+//    });
+//    if (!post) {
+//       res.status(404).json({ error: 'post not found' });
+//    }
+//    if ((req as any).currentUser.id === post?.userId) {
+//       const postUp = await prisma.post.update({
+//          where: {
+//             id,
+//          },
+//          data: {
+//             title,
+//             category,
+//             description,
+//             image,
+//             imagePublicId,
+//          },
+//          include: {
+//             user: {
+//                select: {
+//                   id: true,
+//                   username: true,
+//                   email: true,
+//                   profilePhoto: true,
+//                   isAdmin: true,
+//                   isAccountVerified: true,
+//                },
+//             },
+//          },
+//       });
+//       res.status(200).json({
+//          message: 'post success updated',
+//          post: postUp,
+//       });
+//    } else {
+//       res.status(403).json({ error: 'access denied, forbidden' });
+//    }
+// };
+
+export async function updatePostImage(req: Request, res: Response, next: NextFunction) {
+   const { id } = req.params;
+   if (!req.file) {
+      res.status(400).json({ messag: 'no image provider' });
+   }
+   const post = await prisma.post.findUnique({
+      where: {
+         id,
+      },
+   });
+   if (!post) {
+      res.status(404).json({ message: 'post not found' });
+   }
+   if ((req as any).currentUser.id === post?.userId) {
+      await cloudinaryRemoveImage(post?.imagePublicId!);
+      const imagePath = path.join(__dirname, `../images/${req.file?.filename}`);
+      const result = await cloudinaryUploadImage(imagePath);
+      const imgUp = await prisma.post.update({
+         where: {
+            id,
+         },
+         data: {
+            imagePublicId: (result as any).public_id,
+            image: (result as any).secure_url,
+         },
+      });
+      res.status(200).json({
+         message: 'post image success updated',
+         imgUp,
+      });
+      fs.unlinkSync(imagePath);
+   } else {
+      res.status(403).json({ error: 'access denied, forbidden' });
+   }
+}
