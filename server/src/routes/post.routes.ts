@@ -2,14 +2,15 @@ import express from 'express';
 import asyncHandler from 'express-async-handler';
 import {
    createPostHandler,
-   deletePostHandler,
    getAllPostsHandler,
+   deletePostHandler,
    getSinglePostHandler,
    updatePostHandler,
-   updatePostImage,
+   updatePostImageHandler,
 } from '../handler/post.handler';
 import { verifyToken } from '../middelwares/verifyToken';
 import { photoUpload } from '../middelwares/photoUpload';
+import { toggleLikeHandler } from '../handler/like.handler';
 
 export const postRouter = express.Router();
 
@@ -26,4 +27,6 @@ postRouter
 
 postRouter
    .route('/update-image/:id')
-   .put(verifyToken, photoUpload.single('image'), asyncHandler(updatePostImage));
+   .put(verifyToken, photoUpload.single('image'), asyncHandler(updatePostImageHandler));
+
+postRouter.route('/like/:postId').put(verifyToken, asyncHandler(toggleLikeHandler));

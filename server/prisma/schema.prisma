@@ -22,8 +22,8 @@ model User{
   isAccountVerified Boolean @default(false)
   createdAt DateTime @default(now())
   updatedAt DateTime? @updatedAt
-  posts Post[]
-  likes Like[]
+  posts Post[] @relation("author")
+  likes              Like[]     @relation("likedByUser")
   comments Comment[]
 }
 
@@ -32,22 +32,25 @@ model Post{
   title String
   description String
   userId String
-  user User @relation(fields: [userId], references: [id])
+  user User @relation("author", fields: [userId], references: [id])
   category String
   image  String?
   imagePublicId String?
-  likes Like[]  
+  likedBy Like[]  @relation("likedPost")
   comments Comment[]
   createdAt DateTime @default(now())
   updatedAt DateTime? @updatedAt
 }
 
 model Like {
-  id      String    @id @default(uuid())
-  postId  String
-  userId  String
-  post    Post   @relation(fields: [postId], references: [id])
-  user    User   @relation(fields: [userId], references: [id])
+  id                 String      @id @default(uuid())
+  userId             String
+  user               User        @relation("likedByUser", fields: [userId], references: [id])
+  postId             String
+  post               Post        @relation("likedPost", fields: [postId], references: [id])
+  createdAt          DateTime    @default(now())
+  updatedAt          DateTime?   @updatedAt
+
 }
 
 model Comment{
