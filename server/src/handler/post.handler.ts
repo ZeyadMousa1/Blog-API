@@ -62,6 +62,7 @@ export async function getAllPostsHandler(req: Request, res: Response, next: Next
                   userId: true,
                },
             },
+            comments: true,
          },
       });
    } else if (category) {
@@ -80,6 +81,7 @@ export async function getAllPostsHandler(req: Request, res: Response, next: Next
                   userId: true,
                },
             },
+            comments: true,
          },
       });
    } else {
@@ -94,6 +96,7 @@ export async function getAllPostsHandler(req: Request, res: Response, next: Next
                   userId: true,
                },
             },
+            comments: true,
          },
       });
    }
@@ -124,6 +127,7 @@ export async function getSinglePostHandler(req: Request, res: Response, next: Ne
                userId: true,
             },
          },
+         comments: true,
       },
    });
    if (!post) {

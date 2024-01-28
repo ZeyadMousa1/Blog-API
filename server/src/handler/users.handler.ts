@@ -1,9 +1,7 @@
-import { PrismaClient, User } from '@prisma/client';
+import { PrismaClient } from '@prisma/client';
 import { ExpressHandler } from '../utils/types';
 import {
    GetAllUsersResponse,
-   GetUserResponse,
-   GetUserRequest,
    UpdateUserRequest,
    UpdateUserResponse,
    UpdateUserRequestParams,
@@ -18,8 +16,6 @@ import { PasswordServices } from '../utils/passwordService';
 import path from 'path';
 import { cloudinaryRemoveImage, cloudinaryUploadImage } from '../utils/cloudinary';
 import fs from 'fs';
-import { toUSVString } from 'util';
-import { includes } from 'lodash';
 import { Request, Response, NextFunction } from 'express';
 
 const prisma = new PrismaClient();
@@ -46,7 +42,16 @@ export const getAllUsersHandler: ExpressHandler<{}, {}, GetAllUsersResponse, {}>
          isAccountVerified: true,
          createdAt: true,
          updatedAt: true,
-         posts: true,
+         posts: {
+            include: {
+               likedBy: {
+                  select: {
+                     userId: true,
+                  },
+               },
+               comments: true,
+            },
+         },
       },
    });
    return res.status(201).json({ users });
@@ -76,7 +81,12 @@ export async function getUserProfileHandler(req: Request, res: Response, next: N
          updatedAt: true,
          posts: {
             include: {
-               likedBy: true,
+               likedBy: {
+                  select: {
+                     userId: true,
+                  },
+               },
+               comments: true,
             },
          },
       },
