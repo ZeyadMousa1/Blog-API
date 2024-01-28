@@ -3,7 +3,7 @@ import asyncHandler from 'express-async-handler';
 import {
    deleteProfile,
    getAllUsersHandler,
-   getUserHandler,
+   getUserProfileHandler,
    getUsersCountHandler,
    profilePhotoUploadHandler,
    updateUserProfileHandler,
@@ -28,6 +28,6 @@ userRouter.route('/count').get(verifyTokeAndIsAdminRole, asyncHandler(getUsersCo
 
 userRouter
    .route('/profile/:id')
-   .get(verifyToken, asyncHandler(getUserHandler))
+   .get(verifyToken, asyncHandler(getUserProfileHandler))
    .put(verifyTokenAndOnlyUsers, asyncHandler(updateUserProfileHandler))
    .delete(verifyTokenAndAuthorization, asyncHandler(deleteProfile));

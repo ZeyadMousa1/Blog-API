@@ -18,6 +18,9 @@ import { PasswordServices } from '../utils/passwordService';
 import path from 'path';
 import { cloudinaryRemoveImage, cloudinaryUploadImage } from '../utils/cloudinary';
 import fs from 'fs';
+import { toUSVString } from 'util';
+import { includes } from 'lodash';
+import { Request, Response, NextFunction } from 'express';
 
 const prisma = new PrismaClient();
 
@@ -43,6 +46,7 @@ export const getAllUsersHandler: ExpressHandler<{}, {}, GetAllUsersResponse, {}>
          isAccountVerified: true,
          createdAt: true,
          updatedAt: true,
+         posts: true,
       },
    });
    return res.status(201).json({ users });
@@ -54,11 +58,7 @@ export const getAllUsersHandler: ExpressHandler<{}, {}, GetAllUsersResponse, {}>
  * @method GET
  * @access public
  */
-export const getUserHandler: ExpressHandler<GetUserRequest, {}, GetUserResponse, {}> = async (
-   req,
-   res,
-   next
-) => {
+export async function getUserProfileHandler(req: Request, res: Response, next: NextFunction) {
    const { id } = req.params;
    const user = await prisma.user.findUnique({
       where: {
@@ -74,13 +74,21 @@ export const getUserHandler: ExpressHandler<GetUserRequest, {}, GetUserResponse,
          isAccountVerified: true,
          createdAt: true,
          updatedAt: true,
+         posts: {
+            include: {
+               likedBy: true,
+            },
+         },
       },
    });
+
    if (!user) {
-      return res.status(400).json({ error: 'not found this user' });
+      res.status(400).json({ error: 'not found this user' });
    }
-   res.status(201).json({ user });
-};
+   res.status(201).json({
+      user,
+   });
+}
 
 /**
  * @desc Update User Profile
