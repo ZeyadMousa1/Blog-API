@@ -5,6 +5,7 @@ import { userRouter } from './routes/users.routes';
 import { errorHandler, notFound } from './middelwares/handleError';
 import { postRouter } from './routes/post.routes';
 import { commentRouter } from './routes/comment.routes';
+import { categoryRouter } from './routes/category.routes';
 
 dotenv.config();
 const app = express();
@@ -15,6 +16,7 @@ app.use('/api/auth', authRouter);
 app.use('/api/users', userRouter);
 app.use('/api/posts', postRouter);
 app.use('/api/comment', commentRouter);
+app.use('/api/category', categoryRouter);
 
 app.use(notFound);
 app.use(errorHandler);

@@ -239,7 +239,9 @@ export const deleteProfile: ExpressHandler<
    if (!user) {
       return res.status(404).json({ error: 'User not found!' });
    }
+
    await cloudinaryRemoveImage(user.photoPublicId);
+
    const posts = await prisma.post.findMany({
       where: {
          userId: id,
@@ -247,25 +249,30 @@ export const deleteProfile: ExpressHandler<
    });
    const publicIds = posts?.map(post => post.imagePublicId!);
    if (publicIds?.length > 0) await cloudinaryRemoveMultipleImage(publicIds);
+
    await prisma.like.deleteMany({
       where: {
          userId: id,
       },
    });
+
    await prisma.post.deleteMany({
       where: {
          userId: id,
       },
    });
+
    await prisma.comment.deleteMany({
       where: {
          userId: id,
       },
    });
+
    await prisma.user.delete({
       where: {
          id,
       },
    });
+
    res.status(201).json({ message: 'your profile has been deleted' });
 };
