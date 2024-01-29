@@ -26,6 +26,8 @@ model User {
   likes                Like[]      @relation("likedByUser")
   comments             Comment[]
   category             Category[]
+  followers            Relationship[] @relation("follower")
+  following             Relationship[] @relation("following")
 }
 
 model Post {
@@ -69,6 +71,16 @@ model Category {
   title                String
   userId               String
   user                 User        @relation(fields: [userId], references: [id])
+}
+
+model Relationship {
+  id         String @id @default(uuid())
+  followingId String
+  followerId String
+  following   User   @relation("following", fields: [followingId], references: [id])
+  follower   User   @relation("follower", fields: [followerId], references: [id])
+  createdAt            DateTime    @default(now())
+  updatedAt            DateTime?   @updatedAt
 }
 
 

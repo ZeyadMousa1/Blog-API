@@ -1,9 +1,10 @@
 import { Prisma, PrismaClient } from '@prisma/client';
-import { ExpressHandler } from '../utils/types';
+import { ExpressHandler, Status } from '../utils/types';
 import { SignInRequest, SignInResponse, SignUpRequest, SignUpResponse } from '../api/auth';
 import { validateSignUpUser, validateSignInUser } from '../validator/auth.validator';
 import { PasswordServices } from '../utils/passwordService';
 import { generateJwtToken } from '../utils/auth';
+import { createError } from '../utils/ApiError';
 
 const prisma = new PrismaClient();
 
@@ -20,7 +21,7 @@ export const signUpHandler: ExpressHandler<{}, SignUpRequest, SignUpResponse, {}
 ) => {
    const { error } = validateSignUpUser(req.body);
    if (error) {
-      return res.status(400).json({ error: error.details[0].message });
+      next(createError(`${error.details[0].message}`, 404, Status.ERROR));
    }
    const { email, username, password } = req.body;
    const existing = await prisma.user.findUnique({
@@ -29,10 +30,10 @@ export const signUpHandler: ExpressHandler<{}, SignUpRequest, SignUpResponse, {}
       },
    });
    if (existing) {
-      return res.status(400).json({ error: 'this user already exist' });
+      next(createError('this user already exist', 400, Status.FAIL));
    }
    if (!username || !email || !password) {
-      return res.status(400).json({ error: 'All fields are required' });
+      return next(createError('All fields are required', 400, Status.FAIL));
    }
    const hashedPassword = await PasswordServices.hashPassword(password!);
    const user: Prisma.UserCreateInput = {
