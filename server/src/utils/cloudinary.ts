@@ -25,3 +25,12 @@ export const cloudinaryRemoveImage = async (imagePublicId: string) => {
       return err;
    }
 };
+
+export const cloudinaryRemoveMultipleImage = async (publicIds: string[]) => {
+   try {
+      const result = await cloudinary.v2.api.delete_resources(publicIds);
+      return result;
+   } catch (err) {
+      console.log(err);
+   }
+};

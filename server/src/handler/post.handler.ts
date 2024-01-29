@@ -153,7 +153,11 @@ export async function deletePostHandler(req: Request, res: Response, next: NextF
          },
       });
       await cloudinaryRemoveImage(post?.imagePublicId!);
-      // @TODO: Delete all comments for this post
+      await prisma.comment.deleteMany({
+         where: {
+            postId: id,
+         },
+      });
       res.status(200).json({
          messgae: 'post has been deleted successfully',
          id: post?.id,

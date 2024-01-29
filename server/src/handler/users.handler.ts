@@ -14,9 +14,14 @@ import {
 import { validateUpdateUser } from '../validator/user.validate';
 import { PasswordServices } from '../utils/passwordService';
 import path from 'path';
-import { cloudinaryRemoveImage, cloudinaryUploadImage } from '../utils/cloudinary';
+import {
+   cloudinaryRemoveImage,
+   cloudinaryRemoveMultipleImage,
+   cloudinaryUploadImage,
+} from '../utils/cloudinary';
 import fs from 'fs';
 import { Request, Response, NextFunction } from 'express';
+import { string } from 'joi';
 
 const prisma = new PrismaClient();
 
@@ -235,7 +240,28 @@ export const deleteProfile: ExpressHandler<
       return res.status(404).json({ error: 'User not found!' });
    }
    await cloudinaryRemoveImage(user.photoPublicId);
-   // @TODO : Delete user posts and comment from db and delete user posts image from cloudinary
+   const posts = await prisma.post.findMany({
+      where: {
+         userId: id,
+      },
+   });
+   const publicIds = posts?.map(post => post.imagePublicId!);
+   if (publicIds?.length > 0) await cloudinaryRemoveMultipleImage(publicIds);
+   await prisma.like.deleteMany({
+      where: {
+         userId: id,
+      },
+   });
+   await prisma.post.deleteMany({
+      where: {
+         userId: id,
+      },
+   });
+   await prisma.comment.deleteMany({
+      where: {
+         userId: id,
+      },
+   });
    await prisma.user.delete({
       where: {
          id,
