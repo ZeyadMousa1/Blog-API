@@ -1,22 +1,22 @@
 import fs from 'fs';
 import path from 'path';
 import { PrismaClient } from '@prisma/client';
-import { createPostValidation, updatePostValidation } from '../validator/post.validator';
-import { cloudinaryRemoveImage, cloudinaryUploadImage } from '../utils/cloudinary';
+import { createPostValidation, updatePostValidation } from './post.validator';
+import { cloudinaryUploadImage, cloudinaryRemoveImage } from '../../shared/utils/cloudinary';
 import { Response, Request, NextFunction } from 'express';
+import { createError } from '../../shared/utils/ApiError';
+import { Status } from '../../shared/utils/types';
 
 const prisma = new PrismaClient();
 
 export async function createPostHandler(req: Request, res: Response, next: NextFunction) {
    const { error } = createPostValidation(req.body);
-   if (error) {
-      res.status(400).json({ error: error.details[0].message });
-   }
+   if (error) return next(createError(`${error.details[0].message}`, 404, Status.ERROR));
+
    const { title, description, category } = req.body;
 
-   const imagePath = path.join(__dirname, `../images/${req.file?.filename}`);
+   const imagePath = path.join(__dirname, `../../images/${req.file?.filename}`);
    const result = await cloudinaryUploadImage(imagePath);
-
    const post = await prisma.post.create({
       data: {
          title,
@@ -130,9 +130,7 @@ export async function getSinglePostHandler(req: Request, res: Response, next: Ne
          comments: true,
       },
    });
-   if (!post) {
-      res.status(404).json({ error: 'post not found' });
-   }
+   if (!post) return next(createError('Post not found', 404, Status.FAIL));
    res.status(201).json({ post });
 }
 
@@ -143,9 +141,8 @@ export async function deletePostHandler(req: Request, res: Response, next: NextF
          id,
       },
    });
-   if (!post) {
-      res.status(404).json({ message: 'post not found' });
-   }
+   if (!post) return next(createError('Post not found', 404, Status.FAIL));
+
    if ((req as any).currentUser.isAdmin || (req as any).currentUser.id === post?.id) {
       await prisma.post.delete({
          where: {
@@ -163,15 +160,14 @@ export async function deletePostHandler(req: Request, res: Response, next: NextF
          id: post?.id,
       });
    } else {
-      res.status(403).json({ error: 'access denied, forbidden' });
+      return next(createError('access denied, forbidden', 403, Status.FAIL));
    }
 }
 
 export async function updatePostHandler(req: Request, res: Response, next: NextFunction) {
    const { error } = updatePostValidation(req.body);
-   if (error) {
-      res.status(400).json({ error: error.details[0].message });
-   }
+   if (error) return next(createError(`${error.details[0].message}`, 404, Status.ERROR));
+
    const { id } = req.params;
    const { title, category, description } = req.body;
    const post = await prisma.post.findUnique({
@@ -179,9 +175,8 @@ export async function updatePostHandler(req: Request, res: Response, next: NextF
          id,
       },
    });
-   if (!post) {
-      res.status(404).json({ error: 'post not found' });
-   }
+   if (!post) return next(createError('Post not found', 404, Status.FAIL));
+
    if ((req as any).currentUser.id === post?.userId) {
       const postUp = await prisma.post.update({
          where: { id },
@@ -192,26 +187,24 @@ export async function updatePostHandler(req: Request, res: Response, next: NextF
          post: postUp,
       });
    } else {
-      res.status(403).json({ error: 'access denied, forbidden' });
+      return next(createError('access denied, forbidden', 403, Status.FAIL));
    }
 }
 
 export async function updatePostImageHandler(req: Request, res: Response, next: NextFunction) {
    const { id } = req.params;
-   if (!req.file) {
-      res.status(400).json({ messag: 'no image provider' });
-   }
+   if (!req.file) return next(createError('no image provider', 404, Status.FAIL));
+
    const post = await prisma.post.findUnique({
       where: {
          id,
       },
    });
-   if (!post) {
-      res.status(404).json({ message: 'post not found' });
-   }
+   if (!post) return next(createError('Post not found', 404, Status.FAIL));
+
    if ((req as any).currentUser.id === post?.userId) {
       await cloudinaryRemoveImage(post?.imagePublicId!);
-      const imagePath = path.join(__dirname, `../images/${req.file?.filename}`);
+      const imagePath = path.join(__dirname, `../../images/${req.file?.filename}`);
       const result = await cloudinaryUploadImage(imagePath);
       const imgUp = await prisma.post.update({
          where: {
@@ -228,6 +221,6 @@ export async function updatePostImageHandler(req: Request, res: Response, next: 
       });
       fs.unlinkSync(imagePath);
    } else {
-      res.status(403).json({ error: 'access denied, forbidden' });
+      return next(createError('access denied, forbidden', 403, Status.FAIL));
    }
 }

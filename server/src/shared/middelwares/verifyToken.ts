@@ -1,14 +1,14 @@
+import { createError } from '../utils/ApiError';
 import { verifyJwt } from '../utils/auth';
-import { ExpressHandler } from '../utils/types';
+import { ExpressHandler, Status } from '../utils/types';
 import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
 export const verifyToken: ExpressHandler<{}, {}, {}, {}> = async (req, res, next) => {
    const token = req.headers.authorization?.split(' ')[1];
-   if (!token) {
-      return res.status(401).json({ error: 'Token is required' });
-   }
+   if (!token) return next(createError('Token is required', 401, Status.FAIL));
+
    try {
       const payLoad = verifyJwt(token);
       const currentUser = await prisma.user.findUnique({
@@ -17,11 +17,11 @@ export const verifyToken: ExpressHandler<{}, {}, {}, {}> = async (req, res, next
          },
       });
       if (!currentUser) {
-         return res.status(401).json({ error: 'User not found' });
+         return next(createError('User not Found', 404, Status.FAIL));
       }
       (req as any).currentUser = currentUser;
       next();
    } catch (err) {
-      res.status(401).send({ error: 'Bad token' });
+      next(createError('Bad Toke', 401, Status.FAIL));
    }
 };

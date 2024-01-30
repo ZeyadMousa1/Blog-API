@@ -7,14 +7,14 @@ import {
    getUsersCountHandler,
    profilePhotoUploadHandler,
    updateUserProfileHandler,
-} from '../handler/users.handler';
+} from './users.handler';
 import {
    verifyTokeAndIsAdminRole,
    verifyTokenAndOnlyUsers,
    verifyTokenAndAuthorization,
-} from '../middelwares/manageRoles';
-import { photoUpload } from '../middelwares/photoUpload';
-import { verifyToken } from '../middelwares/verifyToken';
+} from '../../shared/middelwares/manageRoles';
+import { photoUpload } from '../../shared/middelwares/multer';
+import { verifyToken } from '../../shared/middelwares/verifyToken';
 
 export const userRouter = express.Router();
 

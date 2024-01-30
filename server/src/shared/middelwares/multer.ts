@@ -4,7 +4,7 @@ import multer from 'multer';
 // photo stprage
 const photoStorage = multer.diskStorage({
    destination: function (req: any, file: any, cb: any) {
-      cb(null, path.join(__dirname, '../images'));
+      cb(null, path.join(__dirname, '../../images'));
    },
    filename: function (req, file, cb) {
       if (file) {

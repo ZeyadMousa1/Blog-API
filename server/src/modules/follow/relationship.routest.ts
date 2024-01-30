@@ -1,11 +1,11 @@
 import express from 'express';
 import asyncHandler from 'express-async-handler';
-import { verifyToken } from '../middelwares/verifyToken';
+import { verifyToken } from '../../shared/middelwares/verifyToken';
 import {
    FollowOrUnFollowHandler,
    getAllFollowingHandler,
    getAllFollowersHandler,
-} from '../handler/realtionship.handler';
+} from './realtionship.handler';
 
 export const relationshipRouter = express.Router();
 

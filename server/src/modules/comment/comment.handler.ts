@@ -1,24 +1,23 @@
 import { PrismaClient } from '@prisma/client';
 import { Request, Response, NextFunction } from 'express';
-import { validateCreateComment, validateUpdateComment } from '../validator/comment.validate';
+import { validateCreateComment, validateUpdateComment } from './comment.validator';
+import { createError } from '../../shared/utils/ApiError';
+import { Status } from '../../shared/utils/types';
 
 const prisma = new PrismaClient();
 
 // logged in
 export async function createCommentHandler(req: Request, res: Response, next: NextFunction) {
    const { error } = validateCreateComment(req.body);
-   if (error) {
-      res.status(400).json({ error: error.details[0].message });
-   }
+   if (error) return next(createError(`${error.details[0].message}`, 404, Status.ERROR));
    const { postId, title } = req.body;
    const post = await prisma.post.findUnique({
       where: {
          id: postId,
       },
    });
-   if (!post) {
-      res.status(404).json({ message: 'post not found' });
-   }
+   if (!post) next(createError('Post not found', 404, Status.FAIL));
+
    const newComment = await prisma.comment.create({
       data: {
          postId,
@@ -59,9 +58,7 @@ export async function deleteCommentHandler(req: Request, res: Response, next: Ne
          id,
       },
    });
-   if (!comment) {
-      res.status(404).json({ message: 'comment not found' });
-   }
+   if (!comment) return next(createError('Comment not found', 404, Status.FAIL));
    if ((req as any).currentUser.isAdmin || comment?.userId === (req as any).currentUser.id) {
       await prisma.comment.delete({
          where: {
@@ -70,16 +67,15 @@ export async function deleteCommentHandler(req: Request, res: Response, next: Ne
       });
       res.status(200).json({ message: 'comment deleted' });
    } else {
-      res.status(403).json({ message: 'access denied, forbidden' });
+      next(createError('access denied, forbidden', 403, Status.FAIL));
    }
 }
 
 // only owner of the comment
 export async function updateCommentHandler(req: Request, res: Response, next: NextFunction) {
    const { error } = validateUpdateComment(req.body);
-   if (error) {
-      res.status(400).json({ error: error.details[0].message });
-   }
+   if (error) return next(createError(`${error.details[0].message}`, 404, Status.ERROR));
+
    const { id } = req.params;
    const { title } = req.body;
    const comment = await prisma.comment.findUnique({
@@ -87,11 +83,11 @@ export async function updateCommentHandler(req: Request, res: Response, next: Ne
          id,
       },
    });
-   if (!comment) {
-      res.status(404).json({ message: 'comment not found' });
-   }
+
+   if (!comment) return next(createError('Comment not found', 404, Status.ERROR));
+
    if ((req as any).currentUser.id !== comment?.userId) {
-      res.status(403).json({ message: 'access denied, forbidden' });
+      return next(createError('access denied, forbidden', 403, Status.FAIL));
    }
    const updComment = await prisma.comment.update({
       where: { id },
@@ -111,7 +107,7 @@ export async function getAllPostComments(req: Request, res: Response, next: Next
       },
    });
    if (!post) {
-      res.status(404).json({ message: 'post not found' });
+      next(createError('Post not found', 404, Status.FAIL));
    }
    const comments = await prisma.comment.findMany({
       where: {

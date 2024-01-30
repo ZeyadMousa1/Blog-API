@@ -1,13 +1,15 @@
 import { PrismaClient } from '@prisma/client';
 import { Request, Response, NextFunction } from 'express';
-import { validateCreateCategory } from '../validator/category.validator';
+import { validateCreateCategory } from './category.validator';
+import { createError } from '../../shared/utils/ApiError';
+import { Status } from '../../shared/utils/types';
 
 const prisma = new PrismaClient();
 
 // only admin
 export async function createCategoryHandler(req: Request, res: Response, next: NextFunction) {
    const { error } = validateCreateCategory(req.body);
-   if (error) res.status(400).json({ error: error.details[0].message });
+   if (error) return next(createError(`${error.details[0].message}`, 404, Status.ERROR));
    const { title } = req.body;
 
    const category = await prisma.category.create({
@@ -32,7 +34,7 @@ export async function deleteCategoryHandler(req: Request, res: Response, next: N
          id,
       },
    });
-   if (!category) res.status(404).json({ message: 'category not found' });
+   if (!category) return next(createError('Category not found', 404, Status.ERROR));
    await prisma.category.delete({
       where: {
          id,

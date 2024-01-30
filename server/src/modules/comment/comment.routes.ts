@@ -6,10 +6,9 @@ import {
    getAllCommentsHandler,
    getAllPostComments,
    updateCommentHandler,
-} from '../handler/comment.handler';
-import { verifyToken } from '../middelwares/verifyToken';
-import { verifyTokeAndIsAdminRole } from '../middelwares/manageRoles';
-
+} from './comment.handler';
+import { verifyToken } from '../../shared/middelwares/verifyToken';
+import { verifyTokeAndIsAdminRole } from '../../shared/middelwares/manageRoles';
 export const commentRouter = express.Router();
 
 commentRouter

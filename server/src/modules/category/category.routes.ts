@@ -1,11 +1,11 @@
 import express from 'express';
 import asyncHandler from 'express-async-handler';
-import { verifyTokeAndIsAdminRole } from '../middelwares/manageRoles';
+import { verifyTokeAndIsAdminRole } from '../../shared/middelwares/manageRoles';
 import {
    createCategoryHandler,
    deleteCategoryHandler,
    getAllCategoryHandler,
-} from '../handler/category.handler';
+} from './category.handler';
 
 export const categoryRouter = express.Router();
 

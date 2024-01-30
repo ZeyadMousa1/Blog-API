@@ -14,11 +14,9 @@ export const errorHandler: ErrorRequestHandler = (err, req, res, next) => {
          stack: process.env.NODE_ENV === 'production' ? null : err.stack,
       });
    } else {
-      // return res.status(500).json({
-      //    status: Status.ERROR,
-      //    msg: 'Something went wrong, please try again',
-      // });
-      console.log(err);
-      return;
+      return res.status(500).json({
+         status: Status.ERROR,
+         msg: 'Something went wrong, please try again',
+      });
    }
 };

@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { PrismaClient } from '@prisma/client';
-import { createError } from '../utils/ApiError';
-import { Status } from '../utils/types';
+import { createError } from '../../shared/utils/ApiError';
+import { Status } from '../../shared/utils/types';
 
 const prisma = new PrismaClient();
 
@@ -23,10 +23,8 @@ export const FollowOrUnFollowHandler = async (req: Request, res: Response, next:
       },
    });
 
-   if ((req as any).currentUser.id === followerId) {
-      res.status(401).json({ message: 'cant be follow your self' });
-      return;
-   }
+   if ((req as any).currentUser.id === followerId)
+      return next(createError('Cant be follow your self', 403, Status.FAIL));
 
    if (existingRelationship) {
       await prisma.relationship.delete({

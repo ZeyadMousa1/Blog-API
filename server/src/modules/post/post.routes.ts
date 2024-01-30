@@ -7,10 +7,9 @@ import {
    getSinglePostHandler,
    updatePostHandler,
    updatePostImageHandler,
-} from '../handler/post.handler';
-import { verifyToken } from '../middelwares/verifyToken';
-import { photoUpload } from '../middelwares/photoUpload';
-import { toggleLikeHandler } from '../handler/like.handler';
+} from './post.handler';
+import { verifyToken } from '../../shared/middelwares/verifyToken';
+import { photoUpload } from '../../shared/middelwares/multer';
 
 export const postRouter = express.Router();
 
@@ -28,5 +27,3 @@ postRouter
 postRouter
    .route('/update-image/:id')
    .put(verifyToken, photoUpload.single('image'), asyncHandler(updatePostImageHandler));
-
-postRouter.route('/like/:postId').put(verifyToken, asyncHandler(toggleLikeHandler));

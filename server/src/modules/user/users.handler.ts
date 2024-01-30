@@ -1,5 +1,5 @@
 import { PrismaClient } from '@prisma/client';
-import { ExpressHandler } from '../utils/types';
+import { ExpressHandler, Status } from '../../shared/utils/types';
 import {
    GetAllUsersResponse,
    UpdateUserRequest,
@@ -10,18 +10,18 @@ import {
    ProfilePhotoUploadRequest,
    DeleteProfileRequestParam,
    DeleteProfileResponse,
-} from '../api/users';
-import { validateUpdateUser } from '../validator/user.validate';
-import { PasswordServices } from '../utils/passwordService';
+} from '../../api/users';
+import { validateUpdateUser } from './user.validate';
+import { PasswordServices } from '../../shared/utils/passwordService';
 import path from 'path';
 import {
+   cloudinaryUploadImage,
    cloudinaryRemoveImage,
    cloudinaryRemoveMultipleImage,
-   cloudinaryUploadImage,
-} from '../utils/cloudinary';
+} from '../../shared/utils/cloudinary';
 import fs from 'fs';
 import { Request, Response, NextFunction } from 'express';
-import { string } from 'joi';
+import { createError } from '../../shared/utils/ApiError';
 
 const prisma = new PrismaClient();
 
@@ -97,9 +97,7 @@ export async function getUserProfileHandler(req: Request, res: Response, next: N
       },
    });
 
-   if (!user) {
-      res.status(400).json({ error: 'not found this user' });
-   }
+   if (!user) return next(createError('User not Found', 404, Status.FAIL));
    res.status(201).json({
       user,
    });
@@ -118,15 +116,11 @@ export const updateUserProfileHandler: ExpressHandler<
    {}
 > = async (req, res, next) => {
    const { error } = validateUpdateUser(req.body);
-   if (error) {
-      return res.status(400).json({ error: error.details[0].message });
-   }
+   if (error) return next(createError(`${error.details[0].message}`, 404, Status.ERROR));
+
    const { id } = req.params;
    const { bio, username, password } = req.body;
    let hashedPassword;
-   if (!id) {
-      return res.status(400).json({ error: 'not found this user' });
-   }
    if (password) {
       hashedPassword = await PasswordServices.hashPassword(password);
    }
@@ -151,6 +145,7 @@ export const updateUserProfileHandler: ExpressHandler<
          updatedAt: true,
       },
    });
+   if (!user) return next(createError('User not Found', 404, Status.FAIL));
    return res.status(201).json({ user });
 };
 
@@ -182,9 +177,8 @@ export const profilePhotoUploadHandler: ExpressHandler<
    ProfilePhotoUploadResponse,
    {}
 > = async (req, res, next) => {
-   if (!req.file) {
-      return res.status(401).json({ message: 'no file provided' });
-   }
+   if (!req.file) return next(createError('No file provider', 404, Status.FAIL));
+
    const imagePath = path.join(__dirname, `../images/${req.file.filename}`);
    const result = await cloudinaryUploadImage(imagePath);
    console.log(result);
@@ -236,9 +230,7 @@ export const deleteProfile: ExpressHandler<
          id,
       },
    });
-   if (!user) {
-      return res.status(404).json({ error: 'User not found!' });
-   }
+   if (!user) return next(createError('User not Found', 404, Status.FAIL));
 
    await cloudinaryRemoveImage(user.photoPublicId);
 
