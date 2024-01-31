@@ -1,6 +1,7 @@
 import express from 'express';
 import asyncHandler from 'express-async-handler';
 import {
+   createUserHandler,
    deleteProfile,
    getAllUsersHandler,
    getUserProfileHandler,
@@ -18,7 +19,10 @@ import { verifyToken } from '../../shared/middelwares/verifyToken';
 
 export const userRouter = express.Router();
 
-userRouter.route('/profile').get(verifyTokeAndIsAdminRole, asyncHandler(getAllUsersHandler));
+userRouter
+   .route('/profile')
+   .get(verifyTokeAndIsAdminRole, asyncHandler(getAllUsersHandler))
+   .post(verifyTokeAndIsAdminRole, asyncHandler(createUserHandler));
 
 userRouter
    .route('/profile/profile-photo-upload')

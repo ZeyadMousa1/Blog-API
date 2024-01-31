@@ -1,17 +1,6 @@
-import { PrismaClient } from '@prisma/client';
-import { ExpressHandler, Status } from '../../shared/utils/types';
-import {
-   GetAllUsersResponse,
-   UpdateUserRequest,
-   UpdateUserResponse,
-   UpdateUserRequestParams,
-   GetUsersCountRsponse,
-   ProfilePhotoUploadResponse,
-   ProfilePhotoUploadRequest,
-   DeleteProfileRequestParam,
-   DeleteProfileResponse,
-} from '../../api/users';
-import { validateUpdateUser } from './user.validate';
+import { Prisma, PrismaClient } from '@prisma/client';
+import { Status } from '../../shared/utils/types';
+import { createUserValidate, updateUserVAlidate } from './user.validate';
 import { PasswordServices } from '../../shared/utils/passwordService';
 import path from 'path';
 import {
@@ -26,16 +15,50 @@ import { createError } from '../../shared/utils/ApiError';
 const prisma = new PrismaClient();
 
 /**
+ * @desc Create new user
+ * @route /api/users/profile
+ * @method POST
+ * @access private (only admin)
+ */
+export const createUserHandler = async (req: Request, res: Response, next: NextFunction) => {
+   const { error } = createUserValidate(req.body);
+   if (error) return next(createError(`${error.details[0].message}`, 404, Status.ERROR));
+
+   const { username, email, password, isAdmin } = req.body;
+   if (!username || !email || !password || !isAdmin)
+      return next(createError('All fields are required', 401, Status.FAIL));
+
+   const existing = await prisma.user.findUnique({
+      where: {
+         email,
+      },
+   });
+
+   if (existing) return next(createError('this user already exist', 400, Status.FAIL));
+
+   const hashedPassword = await PasswordServices.hashPassword(password);
+
+   const newUser: Prisma.UserCreateInput = {
+      email,
+      password: hashedPassword,
+      username,
+      isAdmin,
+      bio: '',
+      photoPublicId: '',
+   };
+   await prisma.user.create({
+      data: newUser,
+   });
+   res.status(201).json({ message: 'Account created successfully, please login' });
+};
+
+/**
  * @desc    Get All Users Profile
  * @route   /api/users/profile
  * @method  GET
  * @access private (only admin)
  */
-export const getAllUsersHandler: ExpressHandler<{}, {}, GetAllUsersResponse, {}> = async (
-   req,
-   res,
-   next
-) => {
+export const getAllUsersHandler = async (req: Request, res: Response, next: NextFunction) => {
    const users = await prisma.user.findMany({
       select: {
          id: true,
@@ -59,7 +82,7 @@ export const getAllUsersHandler: ExpressHandler<{}, {}, GetAllUsersResponse, {}>
          },
       },
    });
-   return res.status(201).json({ users });
+   res.status(201).json({ users });
 };
 
 /**
@@ -109,13 +132,8 @@ export async function getUserProfileHandler(req: Request, res: Response, next: N
  * @method PUT
  * @access private (only himself)
  */
-export const updateUserProfileHandler: ExpressHandler<
-   UpdateUserRequestParams,
-   UpdateUserRequest,
-   UpdateUserResponse,
-   {}
-> = async (req, res, next) => {
-   const { error } = validateUpdateUser(req.body);
+export const updateUserProfileHandler = async (req: Request, res: Response, next: NextFunction) => {
+   const { error } = updateUserVAlidate(req.body);
    if (error) return next(createError(`${error.details[0].message}`, 404, Status.ERROR));
 
    const { id } = req.params;
@@ -146,7 +164,7 @@ export const updateUserProfileHandler: ExpressHandler<
       },
    });
    if (!user) return next(createError('User not Found', 404, Status.FAIL));
-   return res.status(201).json({ user });
+   res.status(201).json({ user });
 };
 
 /**
@@ -155,13 +173,9 @@ export const updateUserProfileHandler: ExpressHandler<
  * @method  GET
  * @access private (only admin)
  */
-export const getUsersCountHandler: ExpressHandler<{}, {}, GetUsersCountRsponse, {}> = async (
-   req,
-   res,
-   next
-) => {
+export const getUsersCountHandler = async (req: Request, res: Response, next: NextFunction) => {
    const count = await prisma.user.count();
-   return res.status(201).json({ count });
+   res.status(201).json({ count });
 };
 
 /**
@@ -171,12 +185,11 @@ export const getUsersCountHandler: ExpressHandler<{}, {}, GetUsersCountRsponse, 
  * @access private (only logged in users)
  */
 
-export const profilePhotoUploadHandler: ExpressHandler<
-   {},
-   ProfilePhotoUploadRequest,
-   ProfilePhotoUploadResponse,
-   {}
-> = async (req, res, next) => {
+export const profilePhotoUploadHandler = async (
+   req: Request,
+   res: Response,
+   next: NextFunction
+) => {
    if (!req.file) return next(createError('No file provider', 404, Status.FAIL));
 
    const imagePath = path.join(__dirname, `../images/${req.file.filename}`);
@@ -218,12 +231,7 @@ export const profilePhotoUploadHandler: ExpressHandler<
  * @access private (only admin or user him self)
  */
 
-export const deleteProfile: ExpressHandler<
-   DeleteProfileRequestParam,
-   {},
-   DeleteProfileResponse,
-   {}
-> = async (req, res, next) => {
+export const deleteProfile = async (req: Request, res: Response, next: NextFunction) => {
    const { id } = req.params;
    const user = await prisma.user.findUnique({
       where: {
