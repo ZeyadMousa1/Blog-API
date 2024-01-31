@@ -6,6 +6,7 @@ import { commentRouter } from './comment/comment.routes';
 import { relationshipRouter } from './follow/relationship.routest';
 import { categoryRouter } from './category/category.routes';
 import { likeRouter } from './like/like.routes';
+import { bookMarkingRouter } from './bookMarking/bookMarking.routes';
 
 export const appRouter = (app: express.Application) => {
    app.use('/api/auth', authRouter);
@@ -15,4 +16,5 @@ export const appRouter = (app: express.Application) => {
    app.use('/api/category', categoryRouter);
    app.use('/api/follow', relationshipRouter);
    app.use('/api/like', likeRouter);
+   app.use('/api/book-marking', bookMarkingRouter);
 };

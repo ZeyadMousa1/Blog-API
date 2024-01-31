@@ -26,6 +26,7 @@ model User {
   likes                Like[]      @relation("likedByUser")
   comments             Comment[]
   category             Category[]
+  bookMarking          PostsBookMarking[] @relation("user")
   followers            Relationship[] @relation("follower")
   following             Relationship[] @relation("following")
 }
@@ -40,7 +41,8 @@ model Post {
   image                String?
   imagePublicId        String?
   likedBy              Like[]      @relation("likedPost")
-  comments             Comment[]
+  comments             Comment[]    
+  bookMarking          PostsBookMarking[] @relation("postBookMark")  
   createdAt            DateTime    @default(now())
   updatedAt            DateTime?   @updatedAt
 }
@@ -83,4 +85,11 @@ model Relationship {
   updatedAt            DateTime?   @updatedAt
 }
 
+model PostsBookMarking{
+  id String @id @default(uuid())
+  userId String
+  postId String
+  user User @relation("user", fields: [userId], references: [id])
+  post Post @relation("postBookMark", fields: [postId], references: [id])
+}
 
