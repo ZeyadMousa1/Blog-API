@@ -28,3 +28,19 @@ export async function toggleLikeHandler(req: Request, res: Response, next: NextF
       res.status(200).json({ status: 'Liked' });
    }
 }
+
+export async function getAllLikes(req: Request, res: Response, next: NextFunction) {
+   const { postId } = req.params;
+   const likes = await prisma.like.findMany({
+      where: {
+         postId,
+      },
+      select: {
+         id: true,
+         createdAt: true,
+         userId: true,
+         user: true,
+      },
+   });
+   res.status(200).json({ likes });
+}
