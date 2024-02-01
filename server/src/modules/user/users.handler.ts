@@ -276,3 +276,23 @@ export const deleteProfile = async (req: Request, res: Response, next: NextFunct
 
    res.status(201).json({ message: 'your profile has been deleted' });
 };
+
+export const searchUsers = async (req: Request, res: Response, next: NextFunction) => {
+   const { username, email } = req.query;
+
+   if (username || email) {
+      const users = await prisma.user.findMany({
+         where: {
+            username: {
+               contains: username?.toString(),
+            },
+            email: {
+               contains: email?.toString(),
+            },
+         },
+      });
+      res.status(200).json({ users });
+   } else {
+      res.status(200).json({});
+   }
+};

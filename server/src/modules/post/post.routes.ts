@@ -7,6 +7,7 @@ import {
    getSinglePostHandler,
    updatePostHandler,
    updatePostImageHandler,
+   searchPosts,
 } from './post.handler';
 import { verifyToken } from '../../shared/middelwares/verifyToken';
 import { photoUpload } from '../../shared/middelwares/multer';
@@ -18,6 +19,7 @@ postRouter
    .post(verifyToken, photoUpload.single('image'), asyncHandler(createPostHandler))
    .get(asyncHandler(getAllPostsHandler));
 
+postRouter.route('/search').get(verifyToken, asyncHandler(searchPosts));
 postRouter
    .route('/:id')
    .get(asyncHandler(getSinglePostHandler))

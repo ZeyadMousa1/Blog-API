@@ -224,3 +224,19 @@ export async function updatePostImageHandler(req: Request, res: Response, next: 
       return next(createError('access denied, forbidden', 403, Status.FAIL));
    }
 }
+
+export async function searchPosts(req: Request, res: Response, next: NextFunction) {
+   const { title } = req.query;
+   if (title) {
+      const posts = await prisma.post.findMany({
+         where: {
+            title: {
+               contains: title.toString(),
+            },
+         },
+      });
+      res.status(200).json({ posts });
+   } else {
+      res.status(200).json({});
+   }
+}

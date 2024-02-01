@@ -3,6 +3,7 @@
 
 generator client {
   provider = "prisma-client-js"
+  previewFeatures = ["fullTextSearch", "fullTextIndex"]
 }
 
 datasource db {
@@ -29,6 +30,7 @@ model User {
   bookMarking          PostsBookMarking[] @relation("user")
   followers            Relationship[] @relation("follower")
   following             Relationship[] @relation("following")
+  @@fulltext([username, email])
 }
 
 model Post {
@@ -45,6 +47,7 @@ model Post {
   bookMarking          PostsBookMarking[] @relation("postBookMark")  
   createdAt            DateTime    @default(now())
   updatedAt            DateTime?   @updatedAt
+  @@fulltext([title])
 }
 
 model Like {

@@ -7,6 +7,7 @@ import {
    getUserProfileHandler,
    getUsersCountHandler,
    profilePhotoUploadHandler,
+   searchUsers,
    updateUserProfileHandler,
 } from './users.handler';
 import {
@@ -30,6 +31,7 @@ userRouter
 
 userRouter.route('/count').get(verifyTokeAndIsAdminRole, asyncHandler(getUsersCountHandler));
 
+userRouter.route('/profile/search').get(verifyToken, asyncHandler(searchUsers));
 userRouter
    .route('/profile/:id')
    .get(verifyToken, asyncHandler(getUserProfileHandler))
