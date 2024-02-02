@@ -21,6 +21,7 @@ model User {
   photoPublicId        String 
   isAdmin              Boolean     @default(false)
   isAccountVerified    Boolean     @default(false)
+  emailVerificationToken String?
   createdAt            DateTime    @default(now())
   updatedAt            DateTime?   @updatedAt
   posts                Post[]      @relation("author")
@@ -29,7 +30,7 @@ model User {
   category             Category[]
   bookMarking          PostsBookMarking[] @relation("user")
   followers            Relationship[] @relation("follower")
-  following             Relationship[] @relation("following")
+  following            Relationship[] @relation("following")
   @@fulltext([username, email])
 }
 
@@ -95,4 +96,5 @@ model PostsBookMarking{
   user User @relation("user", fields: [userId], references: [id])
   post Post @relation("postBookMark", fields: [postId], references: [id])
 }
+
 
