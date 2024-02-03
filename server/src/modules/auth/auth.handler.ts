@@ -78,9 +78,35 @@ export const signInHandler = async (req: Request, res: Response, next: NextFunct
    if (!matchPassword) return next(createError('Invalid email or password', 400, Status.FAIL));
 
    if (!existing.isAccountVerified) {
-      return next(
-         createError('we sent to you an email, please verify your email address', 400, Status.FAIL)
-      );
+      if (existing.emailVerificationToken) {
+         await sendEmail(
+            existing.email,
+            'Verify your email',
+            verifyEmail(existing.emailVerificationToken, existing.id)
+         );
+         return next(
+            createError(
+               'we sent to you an email, please verify your email address',
+               400,
+               Status.FAIL
+            )
+         );
+      }
+      if (!existing.emailVerificationToken) {
+         const update = await prisma.user.update({
+            where: {
+               id: existing.id,
+            },
+            data: {
+               emailVerificationToken: crypto.randomBytes(32).toString(),
+            },
+         });
+         await sendEmail(
+            existing.email,
+            'Verify your email',
+            verifyEmail(update.emailVerificationToken!, existing.id)
+         );
+      }
    }
 
    const token = generateJwtToken({ id: existing.id, isAdmin: existing.isAdmin });
