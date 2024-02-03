@@ -3,6 +3,7 @@ import dotenv from 'dotenv';
 // import xss from 'xss-clean'
 import rateLimiting from 'express-rate-limit';
 import helmet from 'helmet';
+import hpp from 'hpp';
 
 import { errorHandler, notFound } from '../shared/middelwares/error.handling';
 import { appRouter } from '../modules/routes';
@@ -15,6 +16,10 @@ app.use(express.json());
 // Security Headers
 app.use(helmet());
 
+// Prevent Http Param Pollution
+app.use(hpp());
+
+// Limiting Requests
 app.use(
    rateLimiting({
       windowMs: 10 * 60 * 1000, // 10 minutes

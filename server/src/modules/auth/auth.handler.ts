@@ -1,6 +1,11 @@
 import { PrismaClient } from '@prisma/client';
 import { Status } from '../../shared/utils/types';
-import { validateSignUpUser, validateSignInUser, validateEmail } from './auth.validator';
+import {
+   validateSignUpUser,
+   validateSignInUser,
+   validateEmail,
+   validateNewPassword,
+} from './auth.validator';
 import { PasswordServices } from '../../shared/utils/passwordService';
 import { generateJwtToken } from '../../shared/utils/auth';
 import { createError } from '../../shared/utils/ApiError';
@@ -19,7 +24,7 @@ const prisma = new PrismaClient();
  */
 export const signUpHandler = async (req: Request, res: Response, next: NextFunction) => {
    const { error } = validateSignUpUser(req.body);
-   if (error) next(createError(`${error.details[0].message}`, 404, Status.ERROR));
+   if (error) return next(createError(`${error.details[0].message}`, 404, Status.ERROR));
 
    const { email, username, password } = req.body;
    const existing = await prisma.user.findUnique({
@@ -27,7 +32,7 @@ export const signUpHandler = async (req: Request, res: Response, next: NextFunct
          email,
       },
    });
-   if (existing) next(createError('this user already exist', 400, Status.FAIL));
+   if (existing) return next(createError('this user already exist', 400, Status.FAIL));
 
    if (!username || !email || !password)
       next(createError('All fields are required', 400, Status.FAIL));
@@ -62,7 +67,7 @@ export const signUpHandler = async (req: Request, res: Response, next: NextFunct
  */
 export const signInHandler = async (req: Request, res: Response, next: NextFunction) => {
    const { error } = validateSignInUser(req.body);
-   if (error) next(createError(`${error.details[0].message}`, 404, Status.ERROR));
+   if (error) return next(createError(`${error.details[0].message}`, 404, Status.ERROR));
 
    const { email, password } = req.body;
    const existing = await prisma.user.findUnique({
@@ -171,6 +176,8 @@ export const forgetPassword = async (req: Request, res: Response, next: NextFunc
 };
 
 export const resetPasswordHandler = async (req: Request, res: Response, next: NextFunction) => {
+   const { error } = validateNewPassword(req.body);
+   if (error) return next(createError(`${error.details[0].message}`, 404, Status.ERROR));
    const token = crypto.createHash('sha256').update(req.params.token).digest('hex');
    const user = await prisma.user.findFirst({
       where: {

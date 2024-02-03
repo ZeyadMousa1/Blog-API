@@ -1,10 +1,11 @@
 import joi from 'joi';
+import passwordComplexity from 'joi-password-complexity';
 
 export function validateSignUpUser(obj: Object) {
    const schema = joi.object({
       username: joi.string().trim().min(2).max(30).required(),
       email: joi.string().trim().min(5).max(50).required().email(),
-      password: joi.string().trim().min(6).required(),
+      password: passwordComplexity().required(),
    });
    return schema.validate(obj);
 }
@@ -12,7 +13,7 @@ export function validateSignUpUser(obj: Object) {
 export function validateSignInUser(obj: Object) {
    const schema = joi.object({
       email: joi.string().trim().min(5).max(50).required().email(),
-      password: joi.string().trim().min(6).required(),
+      password: passwordComplexity().required(),
    });
    return schema.validate(obj);
 }
@@ -26,7 +27,7 @@ export function validateEmail(obj: Object) {
 
 export function validateNewPassword(obj: Object) {
    const schema = joi.object({
-      password: joi.string().trim().min(6).required(),
+      password: passwordComplexity().required(),
    });
    return schema.validate(obj);
 }
