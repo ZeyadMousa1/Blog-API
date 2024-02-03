@@ -16,3 +16,17 @@ export function validateSignInUser(obj: Object) {
    });
    return schema.validate(obj);
 }
+
+export function validateEmail(obj: Object) {
+   const schema = joi.object({
+      email: joi.string().trim().min(5).max(50).required().email(),
+   });
+   return schema.validate(obj);
+}
+
+export function validateNewPassword(obj: Object) {
+   const schema = joi.object({
+      password: joi.string().trim().min(6).required(),
+   });
+   return schema.validate(obj);
+}
