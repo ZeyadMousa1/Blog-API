@@ -2,6 +2,7 @@ import express from 'express';
 import dotenv from 'dotenv';
 // import xss from 'xss-clean'
 import rateLimiting from 'express-rate-limit';
+import helmet from 'helmet';
 
 import { errorHandler, notFound } from '../shared/middelwares/error.handling';
 import { appRouter } from '../modules/routes';
@@ -10,6 +11,9 @@ dotenv.config();
 const app = express();
 
 app.use(express.json());
+
+// Security Headers
+app.use(helmet());
 
 app.use(
    rateLimiting({
