@@ -134,6 +134,21 @@ export async function getSinglePostHandler(req: Request, res: Response, next: Ne
    res.status(201).json({ post });
 }
 
+export async function getFollowedPosts(req: Request, res: Response, next: NextFunction) {
+   const posts = await prisma.post.findMany({
+      where: {
+         user: {
+            followers: {
+               some: {
+                  followingId: (req as any).currentUser.id,
+               },
+            },
+         },
+      },
+   });
+   res.status(200).json({ posts });
+}
+
 export async function deletePostHandler(req: Request, res: Response, next: NextFunction) {
    const { id } = req.params;
    const post = await prisma.post.findUnique({

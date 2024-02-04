@@ -8,12 +8,14 @@ import {
    updatePostHandler,
    updatePostImageHandler,
    searchPosts,
+   getFollowedPosts,
 } from './post.handler';
 import { verifyToken } from '../../shared/middelwares/verifyToken';
 import { photoUpload } from '../../shared/middelwares/multer';
 
 export const postRouter = express.Router();
 
+postRouter.route('/following').get(verifyToken, asyncHandler(getFollowedPosts));
 postRouter
    .route('/')
    .post(verifyToken, photoUpload.single('image'), asyncHandler(createPostHandler))

@@ -13,7 +13,7 @@ export function validateSignUpUser(obj: Object) {
 export function validateSignInUser(obj: Object) {
    const schema = joi.object({
       email: joi.string().trim().min(5).max(50).required().email(),
-      password: passwordComplexity().required(),
+      password: joi.string().min(8).max(25).required(),
    });
    return schema.validate(obj);
 }
