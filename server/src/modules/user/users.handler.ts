@@ -247,27 +247,40 @@ export const deleteProfile = async (req: Request, res: Response, next: NextFunct
          userId: id,
       },
    });
+
    const publicIds = posts?.map(post => post.imagePublicId!);
    if (publicIds?.length > 0) await cloudinaryRemoveMultipleImage(publicIds);
 
+   await prisma.relationship.deleteMany({
+      where: {
+         OR: [{ followingId: id }, { followerId: id }],
+      },
+   });
+   await prisma.postsBookMarking.deleteMany({
+      where: {
+         userId: id,
+      },
+   });
+   await prisma.category.deleteMany({
+      where: {
+         userId: id,
+      },
+   });
    await prisma.like.deleteMany({
       where: {
          userId: id,
       },
    });
-
-   await prisma.post.deleteMany({
-      where: {
-         userId: id,
-      },
-   });
-
    await prisma.comment.deleteMany({
       where: {
          userId: id,
       },
    });
-
+   await prisma.post.deleteMany({
+      where: {
+         userId: id,
+      },
+   });
    await prisma.user.delete({
       where: {
          id,

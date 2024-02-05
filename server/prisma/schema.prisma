@@ -41,7 +41,7 @@ model Post {
   title                String
   description          String
   userId               String
-  user                 User        @relation("author", fields: [userId], references: [id])
+  user                 User        @relation("author", fields: [userId], references: [id], onDelete: Cascade)
   category             String
   image                String?
   imagePublicId        String?
@@ -56,7 +56,7 @@ model Post {
 model Like {
   id                   String      @id @default(uuid())
   userId               String
-  user                 User        @relation("likedByUser", fields: [userId], references: [id])
+  user                 User        @relation("likedByUser", fields: [userId], references: [id], onDelete: Cascade)
   postId               String
   post                 Post        @relation("likedPost", fields: [postId], references: [id])
   createdAt            DateTime    @default(now())
@@ -69,7 +69,7 @@ model Comment {
   postId               String
   userId               String
   post                 Post        @relation(fields: [postId], references: [id])
-  user                 User        @relation(fields: [userId], references: [id])
+  user                 User        @relation(fields: [userId], references: [id], onDelete: Cascade)
   createdAt            DateTime    @default(now())
   updatedAt            DateTime?   @updatedAt
 }
@@ -78,15 +78,15 @@ model Category {
   id                   String      @id @default(uuid())
   title                String
   userId               String
-  user                 User        @relation(fields: [userId], references: [id])
+  user                 User        @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Relationship {
   id         String @id @default(uuid())
   followingId String
   followerId String
-  following   User   @relation("following", fields: [followingId], references: [id])
-  follower   User   @relation("follower", fields: [followerId], references: [id])
+  following   User   @relation("following", fields: [followingId], references: [id], onDelete: Cascade)
+  follower   User   @relation("follower", fields: [followerId], references: [id], onDelete: Cascade)
   createdAt            DateTime    @default(now())
   updatedAt            DateTime?   @updatedAt
 }
@@ -95,7 +95,7 @@ model PostsBookMarking{
   id String @id @default(uuid())
   userId String
   postId String
-  user User @relation("user", fields: [userId], references: [id])
+  user User @relation("user", fields: [userId], references: [id], onDelete: Cascade)
   post Post @relation("postBookMark", fields: [postId], references: [id])
 }
 
