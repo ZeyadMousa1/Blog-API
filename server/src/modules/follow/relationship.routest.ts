@@ -9,7 +9,7 @@ import {
 
 export const relationshipRouter = express.Router();
 
-relationshipRouter.route('/:followerId').post(verifyToken, asyncHandler(FollowOrUnFollowHandler));
+relationshipRouter.route('/:userId').post(verifyToken, asyncHandler(FollowOrUnFollowHandler));
 
 relationshipRouter.route('/following').get(verifyToken, asyncHandler(getAllFollowingHandler));
 

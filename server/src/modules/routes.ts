@@ -12,9 +12,9 @@ export const appRouter = (app: express.Application) => {
    app.use('/api/auth', authRouter);
    app.use('/api/users', userRouter);
    app.use('/api/posts', postRouter);
-   app.use('/api/comment', commentRouter);
-   app.use('/api/category', categoryRouter);
+   app.use('/api/comments', commentRouter);
+   app.use('/api/categories', categoryRouter);
    app.use('/api/follow', relationshipRouter);
-   app.use('/api/like', likeRouter);
-   app.use('/api/book-marking', bookMarkingRouter);
+   app.use('/api/likes', likeRouter);
+   app.use('/api/book-marks', bookMarkingRouter);
 };

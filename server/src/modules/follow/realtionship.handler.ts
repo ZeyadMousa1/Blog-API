@@ -6,11 +6,11 @@ import { Status } from '../../shared/utils/types';
 const prisma = new PrismaClient();
 
 export const FollowOrUnFollowHandler = async (req: Request, res: Response, next: NextFunction) => {
-   const { followerId } = req.params;
+   const { userId } = req.params;
 
    const follower = await prisma.user.findUnique({
       where: {
-         id: followerId,
+         id: userId,
       },
    });
    if (!follower) {
@@ -18,12 +18,12 @@ export const FollowOrUnFollowHandler = async (req: Request, res: Response, next:
    }
    const existingRelationship = await prisma.relationship.findFirst({
       where: {
-         followerId,
+         followerId: userId,
          followingId: (req as any).currentUser.id,
       },
    });
 
-   if ((req as any).currentUser.id === followerId)
+   if ((req as any).currentUser.id === userId)
       return next(createError('Cant be follow your self', 403, Status.FAIL));
 
    if (existingRelationship) {
@@ -37,7 +37,7 @@ export const FollowOrUnFollowHandler = async (req: Request, res: Response, next:
       await prisma.relationship.create({
          data: {
             followingId: (req as any).currentUser.id,
-            followerId: followerId,
+            followerId: userId,
          },
       });
       res.status(200).json({ message: `your followed ${follower?.username} successfully` });
