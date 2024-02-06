@@ -16,12 +16,6 @@ import { verifyEmail } from '../../shared/utils/verifyEmail.templates';
 
 const prisma = new PrismaClient();
 
-/**
- * @desc Reqitser New User
- * @route /api/auth/signup
- * @method POST
- * @access public
- */
 export const signUpHandler = async (req: Request, res: Response, next: NextFunction) => {
    const { error } = validateSignUpUser(req.body);
    if (error) return next(createError(`${error.details[0].message}`, 404, Status.ERROR));
@@ -59,12 +53,6 @@ export const signUpHandler = async (req: Request, res: Response, next: NextFunct
    res.status(201).json({ message: 'We sent to you an email, please verify your email' });
 };
 
-/**
- * @desc  Login User
- * @route /api/auth/signin
- * @method POST
- * @access public
- */
 export const signInHandler = async (req: Request, res: Response, next: NextFunction) => {
    const { error } = validateSignInUser(req.body);
    if (error) return next(createError(`${error.details[0].message}`, 404, Status.ERROR));

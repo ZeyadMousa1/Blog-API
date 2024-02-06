@@ -2,7 +2,7 @@
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
   previewFeatures = ["fullTextSearch", "fullTextIndex"]
 }
 
@@ -12,91 +12,89 @@ datasource db {
 }
 
 model User {
-  id                   String      @id @default(uuid())
-  username             String      @db.VarChar(100) 
-  email                String      @db.VarChar(100) @unique
-  password             String
-  bio                  String 
-  profilePhoto         String      @default("https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_640.png") 
-  photoPublicId        String 
-  isAdmin              Boolean     @default(false)
-  isAccountVerified    Boolean     @default(false)
-  emailVerificationToken String?
-  PasswordResetToken   String?
+  id                          String             @id @default(uuid())
+  username                    String             @db.VarChar(100)
+  email                       String             @db.VarChar(100) @unique
+  password                    String
+  bio                         String
+  profilePhoto                String             @default("https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_640.png")
+  photoPublicId               String
+  isAdmin                     Boolean            @default(false)
+  isAccountVerified           Boolean            @default(false)
+  emailVerificationToken      String?
+  PasswordResetToken          String?
   PasswordResetTokenExpires   DateTime?
-  createdAt            DateTime    @default(now())
-  updatedAt            DateTime?   @updatedAt
-  posts                Post[]      @relation("author")
-  likes                Like[]      @relation("likedByUser")
-  comments             Comment[]
-  category             Category[]
-  bookMarking          PostsBookMarking[] @relation("user")
-  followers            Relationship[] @relation("follower")
-  following            Relationship[] @relation("following")
+  createdAt                   DateTime           @default(now())
+  updatedAt                   DateTime?          @updatedAt
+  posts                       Post[]             @relation("author")
+  likes                       Like[]             @relation("likedByUser")
+  comments                    Comment[]
+  category                    Category[]
+  bookMarking                 PostsBookMarking[]  @relation("user")
+  followers                   Relationship[]     @relation("follower")
+  following                   Relationship[]     @relation("following")
   @@fulltext([username, email])
 }
 
 model Post {
-  id                   String      @id @default(uuid())
+  id                   String             @id @default(uuid())
   title                String
   description          String
   userId               String
-  user                 User        @relation("author", fields: [userId], references: [id], onDelete: Cascade)
+  user                 User               @relation("author", fields: [userId], references: [id], onDelete: Cascade)
   category             String
   image                String?
   imagePublicId        String?
-  likedBy              Like[]      @relation("likedPost")
-  comments             Comment[]    
-  bookMarking          PostsBookMarking[] @relation("postBookMark")  
-  createdAt            DateTime    @default(now())
-  updatedAt            DateTime?   @updatedAt
+  likedBy              Like[]             @relation("likedPost")
+  comments             Comment[]
+  bookMarking          PostsBookMarking[]  @relation("postBookMark")
+  createdAt            DateTime           @default(now())
+  updatedAt            DateTime?          @updatedAt
   @@fulltext([title])
 }
 
 model Like {
-  id                   String      @id @default(uuid())
+  id                   String             @id @default(uuid())
   userId               String
-  user                 User        @relation("likedByUser", fields: [userId], references: [id], onDelete: Cascade)
+  user                 User               @relation("likedByUser", fields: [userId], references: [id], onDelete: Cascade)
   postId               String
-  post                 Post        @relation("likedPost", fields: [postId], references: [id])
-  createdAt            DateTime    @default(now())
-  updatedAt            DateTime?   @updatedAt
+  post                 Post               @relation("likedPost", fields: [postId], references: [id])
+  createdAt            DateTime           @default(now())
+  updatedAt            DateTime?          @updatedAt
 }
 
 model Comment {
-  id                   String      @id @default(uuid())
+  id                   String             @id @default(uuid())
   title                String
   postId               String
   userId               String
-  post                 Post        @relation(fields: [postId], references: [id])
-  user                 User        @relation(fields: [userId], references: [id], onDelete: Cascade)
-  createdAt            DateTime    @default(now())
-  updatedAt            DateTime?   @updatedAt
+  post                 Post               @relation(fields: [postId], references: [id])
+  user                 User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt            DateTime           @default(now())
+  updatedAt            DateTime?          @updatedAt
 }
 
 model Category {
-  id                   String      @id @default(uuid())
+  id                   String             @id @default(uuid())
   title                String
   userId               String
-  user                 User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user                 User               @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Relationship {
-  id         String @id @default(uuid())
-  followingId String
-  followerId String
-  following   User   @relation("following", fields: [followingId], references: [id], onDelete: Cascade)
-  follower   User   @relation("follower", fields: [followerId], references: [id], onDelete: Cascade)
-  createdAt            DateTime    @default(now())
-  updatedAt            DateTime?   @updatedAt
+  id                   String             @id @default(uuid())
+  followingId          String
+  followerId           String
+  following            User               @relation("following", fields: [followingId], references: [id], onDelete: Cascade)
+  follower             User               @relation("follower", fields: [followerId], references: [id], onDelete: Cascade)
+  createdAt            DateTime           @default(now())
+  updatedAt            DateTime?          @updatedAt
 }
 
-model PostsBookMarking{
-  id String @id @default(uuid())
-  userId String
-  postId String
-  user User @relation("user", fields: [userId], references: [id], onDelete: Cascade)
-  post Post @relation("postBookMark", fields: [postId], references: [id])
+model PostsBookMarking {
+  id                   String             @id @default(uuid())
+  userId               String
+  postId               String
+  user                 User               @relation("user", fields: [userId], references: [id], onDelete: Cascade)
+  post                 Post               @relation("postBookMark", fields: [postId], references: [id])
 }
-
-

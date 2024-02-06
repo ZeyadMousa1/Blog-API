@@ -170,6 +170,11 @@ export async function deletePostHandler(req: Request, res: Response, next: NextF
             postId: id,
          },
       });
+      await prisma.like.deleteMany({
+         where: {
+            postId: id,
+         },
+      });
       res.status(200).json({
          messgae: 'post has been deleted successfully',
          id: post?.id,

@@ -1,6 +1,5 @@
-import express from 'express';
+import express, { Request, Response } from 'express';
 import dotenv from 'dotenv';
-// import xss from 'xss-clean'
 import rateLimiting from 'express-rate-limit';
 import helmet from 'helmet';
 import hpp from 'hpp';
@@ -29,6 +28,8 @@ app.use(
       message: 'Too many requests, please try again in 10 minutes',
    })
 );
+
+app.get('/', (req: Request, res: Response) => res.send({ status: 'Ok🤝' }));
 
 appRouter(app);
 

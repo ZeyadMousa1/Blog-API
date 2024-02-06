@@ -63,11 +63,3 @@ export const verifyEmail = (token: string, userId: string): string => {
     </html>
   `;
 };
-
-// export const resetPasswoedCode = (token: string, userId: string): string => {
-//     const resetPasswordLink = `${process.env.BASE_URL}/api/auth/reset-password/${userId}`
-//    return `
-//     <h1>Reset Password</h1>
-//     <p>your reset password code is ${code}</p>
-//     `;
-// };

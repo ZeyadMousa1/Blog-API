@@ -5,7 +5,7 @@ import {
    FollowOrUnFollowHandler,
    getAllFollowingHandler,
    getAllFollowersHandler,
-} from './realtionship.handler';
+} from './follow.handler';
 
 export const relationshipRouter = express.Router();
 

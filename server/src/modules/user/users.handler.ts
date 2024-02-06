@@ -14,12 +14,6 @@ import { createError } from '../../shared/utils/ApiError';
 
 const prisma = new PrismaClient();
 
-/**
- * @desc Create new user
- * @route /api/users/profile
- * @method POST
- * @access private (only admin)
- */
 export const createUserHandler = async (req: Request, res: Response, next: NextFunction) => {
    const { error } = createUserValidate(req.body);
    if (error) return next(createError(`${error.details[0].message}`, 404, Status.ERROR));
@@ -52,12 +46,6 @@ export const createUserHandler = async (req: Request, res: Response, next: NextF
    res.status(201).json({ message: 'Account created successfully, please login' });
 };
 
-/**
- * @desc    Get All Users Profile
- * @route   /api/users/profile
- * @method  GET
- * @access private (only admin)
- */
 export const getAllUsersHandler = async (req: Request, res: Response, next: NextFunction) => {
    const users = await prisma.user.findMany({
       select: {
@@ -85,12 +73,6 @@ export const getAllUsersHandler = async (req: Request, res: Response, next: Next
    res.status(201).json({ users });
 };
 
-/**
- * @desc Get User Profile
- * @route /api/users/profile/{id}
- * @method GET
- * @access public
- */
 export async function getUserProfileHandler(req: Request, res: Response, next: NextFunction) {
    const { id } = req.params;
    const user = await prisma.user.findUnique({
@@ -126,12 +108,6 @@ export async function getUserProfileHandler(req: Request, res: Response, next: N
    });
 }
 
-/**
- * @desc Update User Profile
- * @route /api/users/profile/{id}
- * @method PUT
- * @access private (only himself)
- */
 export const updateUserProfileHandler = async (req: Request, res: Response, next: NextFunction) => {
    const { error } = updateUserVAlidate(req.body);
    if (error) return next(createError(`${error.details[0].message}`, 404, Status.ERROR));
@@ -167,23 +143,10 @@ export const updateUserProfileHandler = async (req: Request, res: Response, next
    res.status(201).json({ user });
 };
 
-/**
- * @desc    Get Users Count
- * @route   /api/users/count
- * @method  GET
- * @access private (only admin)
- */
 export const getUsersCountHandler = async (req: Request, res: Response, next: NextFunction) => {
    const count = await prisma.user.count();
    res.status(201).json({ count });
 };
-
-/**
- * @desc    Profile Photo Upload
- * @route   /api/users/profile/profile-photo-upload
- * @method  POST
- * @access private (only logged in users)
- */
 
 export const profilePhotoUploadHandler = async (
    req: Request,
@@ -223,13 +186,6 @@ export const profilePhotoUploadHandler = async (
    });
    fs.unlinkSync(imagePath);
 };
-
-/**
- * @desc    Delete User Account
- * @route   /api/users/profile/:id
- * @method  DELETE
- * @access private (only admin or user him self)
- */
 
 export const deleteProfile = async (req: Request, res: Response, next: NextFunction) => {
    const { id } = req.params;
